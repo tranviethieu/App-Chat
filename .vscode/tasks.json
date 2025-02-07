@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Create new component",
+			"type": "shell",
+			"command": "mkdir -p '${workspaceFolder}/src/components/${input:type}/${input:dirName}/interfaces' && touch '${workspaceFolder}/src/components/${input:type}/${input:dirName}/interfaces/index.ts' '${workspaceFolder}/src/components/${input:type}/${input:dirName}/${input:dirName}.tsx' '${workspaceFolder}/src/components/${input:type}/${input:dirName}/${input:dirName}.module.scss' '${workspaceFolder}/src/components/${input:type}/${input:dirName}/index.ts' && echo 'export interface Props${input:dirName} {}' >> '${workspaceFolder}/src/components/${input:type}/${input:dirName}/interfaces/index.ts' && echo 'export { default } from \"./${input:dirName}\";' >> '${workspaceFolder}/src/components/${input:type}/${input:dirName}/index.ts' && echo 'import React from \"react\"; \n\nimport {Props${input:dirName}} from \"./interfaces\"; \nimport styles from \"./${input:dirName}.module.scss\"; \n\nfunction ${input:dirName}({}:Props${input:dirName}) { \n\treturn <div>${input:dirName}</div>; \n} \n\nexport default ${input:dirName};' >> '${workspaceFolder}/src/components/${input:type}/${input:dirName}/${input:dirName}.tsx'",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": false,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": true
+			}
+		}
+	],
+	"inputs": [
+		{
+			"type": "promptString",
+			"id": "type",
+			"description": "Where do you want to create?",
+			"default": "pages/"
+		},
+		{
+			"type": "promptString",
+			"id": "dirName",
+			"description": "Complete my folder name",
+			"default": "tsx folder to create"
+		}
+	]
+}
