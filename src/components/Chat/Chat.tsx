@@ -1,7 +1,7 @@
 "use client";
 import "@ant-design/v5-patch-for-react-19";
 import { useState, useEffect } from "react";
-import { Input, Button, List } from "antd";
+import { Input, Button, List, Flex } from "antd";
 import {
   db,
   collection,
@@ -11,7 +11,7 @@ import {
   query,
   orderBy,
 } from "~/lib/firebase";
-
+import { formatRelative } from "date-fns";
 interface Message {
   id: string;
   name: string;
@@ -61,7 +61,18 @@ const Chat: React.FC = () => {
     setNewMessage(""); // Reset nội dung chat
     setReplyTo(null); // Reset trạng thái trả lời
   };
+  function formatDate(seconds: any) {
+    let formattedDate = "";
 
+    if (seconds) {
+      formattedDate = formatRelative(new Date(seconds * 1000), new Date());
+
+      formattedDate =
+        formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+    }
+
+    return formattedDate;
+  }
   // Lọc tin nhắn theo parentId (để hiển thị dạng nested)
   const renderMessages = (parentId: string | null = null) => {
     return messages
@@ -72,18 +83,29 @@ const Chat: React.FC = () => {
             style={{
               borderLeft: parentId ? "2px solid #1890ff" : "none",
               paddingLeft: 10,
+              paddingBottom: 4,
+              paddingTop: 4,
+              borderBottom: ".6px solid rgb(201, 201, 201)",
             }}
           >
-            <div style={{ width: "100%" }}>
-              <strong>{msg.name}:</strong> {msg.text}
-              <Button
-                type="link"
-                size="small"
-                onClick={() => setReplyTo(msg.id)}
-              >
-                Reply
-              </Button>
-            </div>
+            <Flex wrap style={{ width: "100%", flexDirection: "column" }}>
+              <div>
+                <strong>{msg.name}:</strong> {msg.text}{" "}
+              </div>
+              <Flex wrap align="baseline" justify="space-between">
+                <span style={{ fontSize: 8 }}>
+                  {formatDate(msg?.createdAt?.seconds)}
+                </span>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => setReplyTo(msg.id)}
+                  style={{ fontSize: 8, padding: "0 10px" }}
+                >
+                  Reply
+                </Button>
+              </Flex>
+            </Flex>
           </List.Item>
           {renderMessages(msg.id)} {/* Hiển thị các tin nhắn trả lời */}
         </div>
@@ -92,7 +114,7 @@ const Chat: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 500, margin: "auto", padding: 20 }}>
-      <h2>Live Chat</h2>
+      <h2>Chat AI</h2>
 
       {/* Hiển thị danh sách tin nhắn */}
       <List bordered>{renderMessages()}</List>
