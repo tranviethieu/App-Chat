@@ -12,97 +12,110 @@ import {
   orderBy,
 } from "~/lib/firebase";
 
-const Chat = () => {
-  const [messages, setMessages] = useState<
-    { id: string; name: string; text: string; createdAt: any }[]
-  >([]);
-  const [name, setName] = useState(""); // Tên người gửi
-  const [newMessage, setNewMessage] = useState(""); // Nội dung tin nhắn
+interface Message {
+  id: string;
+  name: string;
+  text: string;
+  createdAt: any;
+  parentId?: string | null; // Thêm parentId để quản lý tin nhắn trả lời
+}
 
-  // Lấy tên từ Local Storage khi trang load
+const Chat: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [name, setName] = useState<string>("");
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [replyTo, setReplyTo] = useState<string | null>(null); // ID của tin nhắn đang trả lời
+
   useEffect(() => {
-    const savedName = localStorage.getItem("chatUserName");
-    if (savedName) {
-      setName(savedName);
+    const chatUserName = localStorage.getItem("chatUserName");
+    if (chatUserName) {
+      setName(chatUserName);
     }
   }, []);
-
-  // Lưu tên vào Local Storage khi người dùng nhập
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value;
-    setName(newName);
-    localStorage.setItem("chatUserName", newName);
-  };
-
+  // Lấy tin nhắn từ Firestore
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("createdAt"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const messagesData: {
-        id: string;
-        name: string;
-        text: string;
-        createdAt: any;
-      }[] = [];
-      querySnapshot.forEach((doc) => {
-        messagesData.push({ id: doc.id, ...doc.data() } as {
-          id: string;
-          name: string;
-          text: string;
-          createdAt: any;
-        });
-      });
+      const messagesData: Message[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Message[];
       setMessages(messagesData);
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Xử lý gửi tin nhắn hoặc trả lời tin nhắn
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === "" || name.trim() === "") return;
+    if (!newMessage.trim() || !name.trim()) return;
 
     await addDoc(collection(db, "messages"), {
       name,
       text: newMessage,
       createdAt: serverTimestamp(),
+      parentId: replyTo, // Nếu có replyTo thì đây là tin nhắn trả lời
     });
 
     setNewMessage(""); // Reset nội dung chat
+    setReplyTo(null); // Reset trạng thái trả lời
+  };
+
+  // Lọc tin nhắn theo parentId (để hiển thị dạng nested)
+  const renderMessages = (parentId: string | null = null) => {
+    return messages
+      .filter((msg) => msg.parentId === parentId)
+      .map((msg) => (
+        <div key={msg.id} style={{ marginLeft: parentId ? 20 : 0 }}>
+          <List.Item
+            style={{
+              borderLeft: parentId ? "2px solid #1890ff" : "none",
+              paddingLeft: 10,
+            }}
+          >
+            <div style={{ width: "100%" }}>
+              <strong>{msg.name}:</strong> {msg.text}
+              <Button
+                type="link"
+                size="small"
+                onClick={() => setReplyTo(msg.id)}
+              >
+                Reply
+              </Button>
+            </div>
+          </List.Item>
+          {renderMessages(msg.id)} {/* Hiển thị các tin nhắn trả lời */}
+        </div>
+      ));
   };
 
   return (
     <div style={{ maxWidth: 500, margin: "auto", padding: 20 }}>
-      <h2 style={{ marginBottom: 20 }}>Live Chat</h2>
+      <h2>Live Chat with Replies</h2>
 
-      {/* Hiển thị tin nhắn */}
-      <List
-        bordered
-        dataSource={messages}
-        renderItem={(message) => (
-          <List.Item>
-            <div style={{ width: "100%" }}>
-              <strong>{message.name}:</strong> {message.text}
-            </div>
-          </List.Item>
-        )}
-      />
+      {/* Hiển thị danh sách tin nhắn */}
+      <List bordered>{renderMessages()}</List>
 
       {/* Form nhập tin nhắn */}
       <form onSubmit={sendMessage} style={{ marginTop: 16 }}>
         <Input
           placeholder="Enter your name"
           value={name}
-          onChange={handleNameChange} // Lưu vào Local Storage
+          onChange={(e) => {
+            setName(e.target.value);
+            localStorage.setItem("chatUserName", e.target.value);
+          }}
           style={{ marginBottom: 8 }}
         />
         <Input
-          placeholder="Type a message"
+          placeholder={replyTo ? "Replying..." : "Type a message"}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           style={{ marginBottom: 8 }}
         />
         <Button type="primary" htmlType="submit" block>
-          Send
+          {replyTo ? "Reply" : "Send"}
         </Button>
       </form>
     </div>
