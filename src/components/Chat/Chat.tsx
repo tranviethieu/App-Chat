@@ -128,13 +128,13 @@ const Chat: React.FC = () => {
             setName(e.target.value);
             localStorage.setItem("chatUserName", e.target.value);
           }}
-          style={{ marginBottom: 8 }}
+          style={{ marginBottom: 9 }}
         />
         <Input
           placeholder={replyTo ? "Replying..." : "Type a message"}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          style={{ marginBottom: 8 }}
+          style={{ marginBottom: 10 }}
         />
         <Button type="primary" htmlType="submit" block>
           {replyTo ? "Reply" : "Send"}
