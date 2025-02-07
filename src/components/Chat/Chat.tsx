@@ -92,7 +92,7 @@ const Chat: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 500, margin: "auto", padding: 20 }}>
-      <h2>Live Chat with Replies</h2>
+      <h2>Live Chat</h2>
 
       {/* Hiển thị danh sách tin nhắn */}
       <List bordered>{renderMessages()}</List>
