@@ -85,7 +85,7 @@ const Chat: React.FC = () => {
               paddingLeft: 10,
               paddingBottom: 4,
               paddingTop: 4,
-              borderBottom: ".6px solid rgb(201, 201, 201)",
+              borderBottom: ".2px solid rgb(224, 224, 224)",
             }}
           >
             <Flex wrap style={{ width: "100%", flexDirection: "column" }}>
@@ -93,14 +93,14 @@ const Chat: React.FC = () => {
                 <strong>{msg.name}:</strong> {msg.text}{" "}
               </div>
               <Flex wrap align="baseline" justify="space-between">
-                <span style={{ fontSize: 8 }}>
+                <span style={{ fontSize: 10 }}>
                   {formatDate(msg?.createdAt?.seconds)}
                 </span>
                 <Button
                   type="link"
                   size="small"
                   onClick={() => setReplyTo(msg.id)}
-                  style={{ fontSize: 8, padding: "0 10px" }}
+                  style={{ fontSize: 11, padding: "0 10px" }}
                 >
                   Reply
                 </Button>
