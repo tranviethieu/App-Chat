@@ -8,8 +8,16 @@ import {
   onSnapshot,
   query,
   orderBy,
+  updateDoc,
+  doc,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
-
+import {
+  FacebookAuthProvider,
+  getAuth,
+  GoogleAuthProvider,
+} from "firebase/auth";
 const firebaseConfig = {
   apiKey: "AIzaSyC2Dr9p-XV6ITKFJDZEaNUL__f4I0Q-Z8A",
   authDomain: "chat-my-app-6251e.firebaseapp.com",
@@ -22,5 +30,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-export { db, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy };
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+export {
+  db,
+  auth,
+  provider,
+  collection,
+  addDoc,
+  facebookProvider,
+  serverTimestamp,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
+  getDoc,
+  setDoc,
+};
