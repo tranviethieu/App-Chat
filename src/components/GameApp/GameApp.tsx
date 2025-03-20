@@ -139,12 +139,16 @@ const GameApp: React.FC = () => {
       ) : (
         <>
           <h1 style={{ marginBottom: 40 }}>Đăng nhập</h1>
-          <Flex gap={10}>
-            <Button onClick={() => handleLogin(provider)}>
+          <Flex gap={10} vertical>
+            <Button
+              color="danger"
+              variant="outlined"
+              onClick={() => handleLogin(provider)}
+            >
               Đăng nhập với Google
             </Button>
             <Button
-              className="mt-2"
+              type="primary"
               onClick={() => handleLogin(facebookProvider)}
             >
               Đăng nhập với Facebook
