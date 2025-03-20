@@ -1,12 +1,17 @@
 "use client";
 import { Button, Flex } from "antd";
 import { useEffect, useState } from "react";
-import { signInWithPopup, signOut } from "firebase/auth";
+import {
+  fetchSignInMethodsForEmail,
+  linkWithCredential,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import "@ant-design/v5-patch-for-react-19";
 import {
   db,
   auth,
-  provider,
+  googleProvider,
   doc,
   getDoc,
   setDoc,
@@ -41,30 +46,34 @@ const GameApp: React.FC = () => {
   const handleLogin = async (provider: any) => {
     try {
       const result = await signInWithPopup(auth, provider);
-      const userData = result.user;
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      await initializeUser(userData.uid);
-    } catch (error) {
-      console.error("Login error:", error);
+      setUser(result.user);
+      localStorage.setItem("user", JSON.stringify(result.user));
+    } catch (error: any) {
+      if (error.code === "auth/account-exists-with-different-credential") {
+        const email = error.customData.email;
+        const pendingCred = error.credential;
+        // Lấy thông tin tài khoản đã đăng nhập trước đó
+        const providers = await fetchSignInMethodsForEmail(auth, email);
+        if (providers.includes("google.com")) {
+          const googleResult = await signInWithPopup(auth, googleProvider);
+          await linkWithCredential(googleResult.user, pendingCred);
+          setUser(googleResult.user);
+        } else if (providers.includes("facebook.com")) {
+          const facebookResult = await signInWithPopup(auth, facebookProvider);
+          await linkWithCredential(facebookResult.user, pendingCred);
+          setUser(facebookResult.user);
+        }
+        localStorage.setItem("user", JSON.stringify(auth.currentUser));
+      } else {
+        console.error("Login error:", error);
+      }
     }
   };
+
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
     localStorage.removeItem("user");
-  };
-
-  // Kiểm tra nếu user chưa có trong Firestore thì tạo mới
-  const initializeUser = async (userId: string) => {
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) {
-      await setDoc(userRef, { level: 1 });
-      setLevel(1);
-    } else {
-      setLevel(userSnap.data().level);
-    }
   };
 
   // Lấy level từ Firestore khi user đăng nhập lại
@@ -83,7 +92,6 @@ const GameApp: React.FC = () => {
 
     if (!!userSnapFace.data()) {
       const shareUrl = userSnapFace.data()?.link;
-      debugger;
       const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
         shareUrl
       )}`;
@@ -143,7 +151,7 @@ const GameApp: React.FC = () => {
             <Button
               color="danger"
               variant="outlined"
-              onClick={() => handleLogin(provider)}
+              onClick={() => handleLogin(googleProvider)}
             >
               Đăng nhập với Google
             </Button>
